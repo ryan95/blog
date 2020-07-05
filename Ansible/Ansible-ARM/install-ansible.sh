@@ -5,6 +5,9 @@
 # Update
 yum -y update
 
+# Install Git
+
+yum -y install git
 
 # Create ansible repo file
 

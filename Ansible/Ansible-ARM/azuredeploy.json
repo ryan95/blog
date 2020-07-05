@@ -86,6 +86,7 @@
         "version": "latest",
         "nicName": "[concat(parameters('vmName'), 'nic01')]",
         "staticip": "https://github.com/ryan95/DSC/raw/master/Static-IP.json",
+        "installansible": "https://raw.githubusercontent.com/ryan95/blog/master/Ansible/Ansible-ARM/install-ansible.sh",
         "subnetRef": "[concat('/subscriptions/',parameters('subscriptionid'),'/resourceGroups/',parameters('virtualnetworkresourcegroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('virtualnetworkname'),'/subnets/',parameters('subnetname'))]",
         "linuxConfiguration": {
             "disablePasswordAuthentication": true,
@@ -177,7 +178,30 @@
                         }
                     ]
                 }
-            }
+            },
+            "resources": [
+                {
+                    "type": "extensions",
+                    "name": "installansible",
+                    "apiVersion": "2019-07-01",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Compute/virtualMachines',parameters('vmName'))]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Azure.Extensions",
+                        "type": "CustomScript",
+                        "typeHandlerVersion": "2.0",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "fileUris": [
+                             "[variables('installansible')]"
+                            ],
+                            "commandToExecute": "sh install-ansible.sh"
+                        }
+                    }
+                }
+            ]
         },
         {
             "type": "Microsoft.Resources/deployments",
