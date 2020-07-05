@@ -1,0 +1,51 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "value": "azureadmin"
+        },
+        "adminPassword": {
+            "value": "Password"
+        },
+        "vmSize": {
+            "value": "standard_D2s_v3"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "VMName": {
+            "value": "VMName"
+        },
+        "DiskSKU": {
+            "value": "Standard_LRS"
+        },
+        "AvailabilitySetName": {
+            "value": "AVName"
+        },
+        "virtualNetworkName": {
+            "value": "VNETName"
+        },
+        "VirtualNetworkResourceGroup": {
+            "value": "VNETRG"
+        },
+        "SubscriptionID": {
+            "value": "subid"
+        },
+        "SubnetName": {
+            "value": "SubnetName"
+        },
+        "Publisher": {
+            "value": "MicrosoftWindowsServer"
+        },
+        "Offer": {
+            "value": "WindowsServer"
+        },
+        "sku": {
+            "value": "2019-Datacenter"
+        },
+        "version": {
+            "value": "latest"
+        }
+    }
+}

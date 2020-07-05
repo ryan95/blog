@@ -1,0 +1,214 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the administrator account"
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "The password for the administrator account"
+            }
+        },
+        "vmSize": {
+            "type": "string",
+            "defaultValue": "Standard_D2s_v3",
+            "metadata": {
+                "description": "Size of the VM"
+            }
+        },
+        "location": {
+            "type": "string",
+            "defaultValue": "uksouth",
+            "metadata": {
+                "description": "Location for all resources."
+            }
+        },
+        "VMName": {
+            "type": "string",
+            "defaultValue": "VMName"
+        },
+        "DiskSKU": {
+            "type": "string",
+            "defaultValue": "StandardSSD_LRS",
+            "allowedValues": [
+                "StandardSSD_LRS",
+                "Standard_LRS",
+                "Premium_LRS"
+            ]
+        },
+        "AvailabilitySetName": {
+            "type": "string"
+        },
+        "virtualNetworkName": {
+            "type": "string"
+        },
+        "VirtualNetworkResourceGroup": {
+            "type": "string"
+        },
+        "SubscriptionID": {
+            "type": "string"
+        },
+        "SubnetName": {
+            "type": "string"
+        },
+        "Publisher": {
+            "type": "string",
+            "DefaultValue": "MicrosoftWindowsServer"
+        },
+        "Offer": {
+            "type": "string",
+            "DefaultValue": "WindowsServer"
+        },
+        "sku": {
+            "type": "string",
+            "DefaultValue": "2019-Datacenter"
+        },
+        "version": {
+            "type": "string",
+            "DefaultValue": "latest"
+        }
+
+    },
+    "variables": {
+        "NicName": "[concat(parameters('VMName'),'nic01')]",
+        "subnetid": "[concat('/subscriptions/',parameters('SubscriptionID'),'/resourceGroups/',parameters('VirtualNetworkResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('virtualNetworkName'),'/subnets/',parameters('SubnetName'))]",
+        "setstaticip": "https://github.com/ryan95/DSC/raw/master/Static-IP.json",
+        "configurewinrm": "https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1"
+
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Compute/availabilitySets",
+            "apiVersion": "2019-03-01",
+            "location": "[parameters('location')]",
+            "name": "[parameters('AvailabilitySetName')]",
+            "properties": {
+                "PlatformUpdateDomainCount": 5,
+                "PlatformFaultDomainCount": 2
+            },
+            "sku": {
+                "name": "Aligned"
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-02-01",
+            "name": "[variables('NicName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "ipconfig1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('subnetid')]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-03-01",
+            "name": "[parameters('VMName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[variables('NicName')]",
+                "[parameters('AvailabilitySetName')]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "availabilitySet": {
+                    "id": "[resourceId('Microsoft.Compute/availabilitySets', parameters('AvailabilitySetName'))]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('VMName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "[parameters('publisher')]",
+                        "offer": "[parameters('offer')]",
+                        "sku": "[parameters('sku')]",
+                        "version": "[parameters('version')]"
+                    },
+                    "osDisk": {
+                        "name": "[concat(parameters('VMName'),'osdisk')]",
+                        "caching": "ReadWrite",
+                        "createOption": "FromImage",
+                        "managedDisk": {
+                            "storageAccountType": "[parameters('DiskSKU')]"
+                        }
+                    }
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('NicName'))]"
+                        }
+                    ]
+                }
+            },
+            "resources": [
+                {
+                    "type": "extensions",
+                    "name": "winrmconfig",
+                    "apiVersion": "2019-07-01",
+                    "location": "[parameters('location')]",
+                    "dependsOn": [
+                        "[parameters('VMName')]"
+                    ],
+                    "properties": {
+                        "publisher": "Microsoft.Compute",
+                        "type": "CustomScriptExtension",
+                        "typeHandlerVersion": "1.8",
+                        "autoUpgradeMinorVersion": true,
+                        "settings": {
+                            "fileUris": [
+                                "[variables('configurewinrm')]"
+                            ],
+                            "commandToExecute": "powershell -ExecutionPolicy Bypass -File ConfigureRemotingForAnsible.ps1 -DisableBasicAuth -EnableCredSSP"
+                        }
+                    }
+                }
+            ]
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "name": "setstaticip",
+            "apiVersion": "2019-05-01",
+            "dependsOn": [
+                "[variables('NicName')]"
+            ],
+            "properties": {
+                "mode": "Incremental",
+                "templateLink": {
+                    "uri": "[variables('setstaticip')]",
+                    "contentVersion": "1.0.0.0"
+                },
+                "parameters": {
+                    "nicName": {
+                        "value": "[variables('NicName')]"
+                    },
+                    "subnetRef": {
+                        "value": "[variables('subnetid')]"
+                    },
+                    "privateIp": {
+                        "value": "[reference(variables('NicName')).ipConfigurations[0].properties.PrivateIPAddress]"
+                    }
+                }
+            }
+        }
+
+    ]
+}

@@ -5,9 +5,6 @@
 # Update
 yum -y update
 
-# Install Git
-
-yum -y install git
 
 # Create ansible repo file
 
@@ -27,7 +24,7 @@ yum -y install ansible
 curl -s https://bootstrap.pypa.io/get-pip.py | python
 
 
-# Upgrade cryptography - required for CREDSSP
+# Upgrade cryptography - required for requests-credssp
 
 pip install cryptography --upgrade
 
