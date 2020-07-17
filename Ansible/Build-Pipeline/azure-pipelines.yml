@@ -1,0 +1,17 @@
+trigger:
+- master
+
+pool:
+ vmImage: 'windows-latest'
+
+steps:
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: 'Ansible'
+    Contents: '**'
+    TargetFolder: '$(build.artifactstagingdirectory)/Ansible'
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
