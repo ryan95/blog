@@ -1,0 +1,5 @@
+- hosts: webserver
+  gather_facts: no
+  roles:
+   - region
+   - joindomain

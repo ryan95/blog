@@ -1,0 +1,3 @@
+---
+domainname: blog.local
+OU: "OU=Servers,DC=blog,DC=local"

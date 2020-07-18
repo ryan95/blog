@@ -1,0 +1,18 @@
+---
+ - name: Set Location and format to UK
+   win_region:
+    unicode_language: en-GB
+    format: en-GB
+    location: 242
+   register: region
+
+ - win_reboot:
+   when: region.restart_required
+
+ - name: Set Timezone to (UTC+00:00) Dublin, Edinburgh, Lisbon, London
+   win_timezone:
+    timezone: GMT Standard Time
+
+
+
+# Location https://msdn.microsoft.com/en-us/library/dd374073.aspx 
