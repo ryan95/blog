@@ -2,10 +2,6 @@
 # theazureblog.co.uk
 
 
-# Update
-yum -y update
-
-
 # Create ansible repo file
 
 cat >/etc/yum.repos.d/ansible.repo <<EOL
