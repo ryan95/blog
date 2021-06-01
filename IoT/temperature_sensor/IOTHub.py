@@ -6,7 +6,7 @@ sensor = Adafruit_DHT.DHT11
 pin = 17
 
 
-CONNECTION_STRING = "HostName=rsraspberrypihub.azure-devices.net;DeviceId=RaspberryPi;SharedAccessKey=f7lqEV4S+/gU0CULjHTPkdclJJWuhS86rz7KmE9wY5c=" 
+CONNECTION_STRING = "" 
 MSG = '{{"temperature": {temperature},"humidity": {humidity}}}'
 
  
